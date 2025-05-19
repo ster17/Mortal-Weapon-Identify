@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Death Dragon Weapon Appraisal Adventure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1e1e1e;
+            color: white;
+        }
+        .item-box {
+            width: 350px;
+            margin: 50px auto;
+            background: #222;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .item-header {
+            background: black;
+            color: cyan;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 10px 10px 0 0;
+        }
+        .item-image {
+            width: 60px;
+            height: 60px;
+            margin: 10px auto;
+            display: block;
+            border-radius: 8px;
+            border: 2px solid #ccc;
+        }
+        .option-slot {
+            background: white;
+            color: black;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+        .button {
+            background: cyan;
+            color: black;
+            font-weight: bold;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background: lightblue;
+        }
+        .count-display {
+            margin-top: 10px;
+            font-weight: bold;
+            color: yellow;
+        }
+        .search-count {
+            margin-top: 10px;
+            font-weight: bold;
+            color: lightblue;
+        }
+        .ed-display {
+            margin-top: 10px;
+            font-weight: bold;
+            color: lightblue;
+            font-size: 1.2em;
+        }
+    </style>
+    <script>
+        let clickCount = 0;
+        let searchCount = 0;
+
+        const options = [
+            ["Physical/Magical Attack Power (Enhancement Level)", 0.8, 1.5, true],
+            ["Physical/Magical Attack Power Level (Enhancement Level)", 0.8, 1.5, true],
+            ["Critical Damage (Enhancement Level)", 0.8, 1.5, true],
+            ["All Skill Damage (Enhancement Level)", 0.8, 1.5, true],
+            ["Physical/Magical Defense (Enhancement Level)", 0.8, 1.5, true],
+            ["Deals continuous damage by n% of damage dealt for 3 seconds", 5, 12, false],
+            ["Ignore Enemy Physical/Magical Defense", 4.5, 8, false],
+            ["Physical/Magical Attack Power", 6, 13, false],
+            ["Polarization: Attack/Attacked Damage", 5, 12, false],
+            ["Critical Damage", 6, 13, false],
+            ["Physical/Magical Attack Power Level", 6, 13, false],
+            ["Physical/Magical Defense", 6, 13, false],
+            ["Damage Reduction", 8, 15, false],
+            ["Damage to Boss Monsters", 8, 15, false],
+            ["Damage Taken from Boss Monsters", 8, 15, false],
+            ["Tenacity Skill Damage", 6, 13, false],
+            ["Strength Skill Damage", 6, 13, false],
+            ["Bravery Skill Damage", 6, 13, false],
+            ["All Skill Damage", 6, 13, false],
+            ["Action Speed", 8, 15, false]
+        ];
+
+        const targetOptions = [
+            "Physical/Magical Attack Power (Enhancement Level)",
+            "All Skill Damage (Enhancement Level)",
+            "Deals continuous damage by n% of damage dealt for 3 seconds",
+            "Polarization: Attack/Attacked Damage"
+        ];
+
+        function getRandomOptions() {
+            let selected = [];
+            let resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = ''; 
+
+            while (selected.length < 4) {
+                let randomIndex = Math.floor(Math.random() * options.length);
+                if (!selected.includes(randomIndex)) {
+                    selected.push(randomIndex);
+                }
+            }
+
+            selected.forEach(index => {
+                let option = options[index];
+                let randomValue = Math.random() * (option[2] - option[1]) + option[1];
+                randomValue = option[3] ? randomValue.toFixed(1) : Math.round(randomValue);
+
+                let p = document.createElement('div');
+                p.className = "option-slot";
+                p.textContent = `${option[0]}: ${randomValue}%`;
+                resultDiv.appendChild(p);
+            });
+
+            clickCount++;
+            document.getElementById('click-count').textContent = `Number of Effect Changes: ${clickCount}`;
+        }
+
+        function findTargetOptions() {
+            searchCount = 0;
+
+            while (true) {
+                searchCount++;
+
+                let selected = [];
+                while (selected.length < 4) {
+                    let randomIndex = Math.floor(Math.random() * options.length);
+                    if (!selected.includes(randomIndex)) {
+                        selected.push(randomIndex);
+                    }
+                }
+
+                let selectedOptions = selected.map(index => options[index][0]);
+                let allFound = targetOptions.every(option => selectedOptions.includes(option));
+
+                if (allFound) {
+                    let resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = ''; 
+
+                    selected.forEach(index => {
+                        let option = options[index];
+                        let randomValue = Math.random() * (option[2] - option[1]) + option[1];
+                        randomValue = option[3] ? randomValue.toFixed(1) : Math.round(randomValue);
+
+                        let p = document.createElement('div');
+                        p.className = "option-slot";
+                        p.textContent = `${option[0]}: ${randomValue}%`;
+                        resultDiv.appendChild(p);
+                    });
+
+                    document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
+
+                    let edCost = searchCount * 20000000;
+                    document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
+                    break;
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="item-box">
+        <div class="item-header">+9 Undead Dragon's Will - Mortal Weapon</div>
+        <img src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png" class="item-image" alt="Icon">
+        <div id="result">
+            <div class="option-slot">No applicable effects.</div>
+            <div class="option-slot">No applicable effects.</div>
+            <div class="option-slot">No applicable effects.</div>
+            <div class="option-slot">No applicable effects.</div>
+        </div>
+        <button class="button" onclick="getRandomOptions()">Change Effects</button>
+        <div id="click-count" class="count-display">Number of Effect Changes: 0</div>
+        <button class="button" onclick="findTargetOptions()">Graduate Attributes</button>
+        <div id="search-count" class="search-count"></div>
+        <div id="ed-cost" class="ed-display"></div>
+    </div>
+</body>
+</html>
