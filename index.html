@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Death Dragon Weapon Appraisal Adventure</title>
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Death Dragon Weapon Appraisal Adventure</title>
+<style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -70,9 +71,42 @@
             color: lightblue;
             font-size: 1.2em;
         }
-    </style>
-    <script>
+    
+    .sticky-button {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .red-points {
+      color: red;
+    }
+</style>
+<script>
         let clickCount = 0;
+        const scoringTable = {
+            "Physical/Magical Attack Power (Enhancement Level)": [[1.5, 9.5], [1.4, 9], [1.3, 8], [1.2, 7.5], [1.1, 7], [1.0, 6], [0.9, 5], [0.8, 4.5]],
+            "All Skill Damage (Enhancement Level)": [[1.5, 8.5], [1.4, 8], [1.3, 7.5], [1.2, 7], [1.1, 5.5], [1.0, 5], [0.9, 5], [0.8, 4.5]],
+            "Physical/Magical Attack Power Level (Enhancement Level)": [[1.5, 7.5], [1.4, 7], [1.3, 6.5], [1.2, 6], [1.1, 5.5], [1.0, 5], [0.9, 4.5], [0.8, 4]],
+            "Critical Damage (Enhancement Level)": [[1.5, 7.5], [1.4, 7], [1.3, 6.5], [1.2, 6], [1.1, 5.5], [1.0, 5], [0.9, 4.5], [0.8, 4]],
+            "Deals continuous damage by n% of damage dealt for 3 seconds": [[12, 8], [11, 7], [10, 6.5], [9, 6], [8, 5], [7, 4.5], [6, 4]],
+            "Physical/Magical Attack Power": [[13, 7], [12, 6.5], [11, 6], [10, 5.5], [9, 5], [8, 4.5]],
+            "Critical Damage": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3], [7, 2.5], [6, 2]],
+            "Physical/Magical Attack Power Level": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3]],
+            "Damage to Boss Monsters": [[15, 5], [14, 4.5], [13, 4.5], [12, 4], [11, 4], [10, 3.5], [9, 3], [8, 2.5]],
+            "All Skill Damage": [[13, 6.5], [12, 6], [11, 5], [10, 4.5], [9, 4.5], [8, 4]],
+            "Strength Skill Damage": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3], [7, 2.5], [6, 2]],
+            "Bravery Skill Damage": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3], [7, 2.5], [6, 2]],
+      "Polarization: Attack/Attacked Damage": [[12, 8], [11, 7], [10, 6.5], [9, 6], [8, 5], [7, 4.5], [6, 4]]
+        };
+
+        function calculateScore(stat, value) {
+            if (!scoringTable[stat]) return 0;
+            for (const [threshold, points] of scoringTable[stat]) {
+                if (value >= threshold) return points;
+            }
+            return 0;
+        }
+
         let searchCount = 0;
 
         const options = [
@@ -117,23 +151,103 @@
                 }
             }
 
-            selected.forEach(index => {
+            let totalScore = 0;
+    selected.forEach(index => {
                 let option = options[index];
                 let randomValue = Math.random() * (option[2] - option[1]) + option[1];
                 randomValue = option[3] ? randomValue.toFixed(1) : Math.round(randomValue);
 
                 let p = document.createElement('div');
                 p.className = "option-slot";
-                p.textContent = `${option[0]}: ${randomValue}%`;
+                let score = calculateScore(option[0], parseFloat(randomValue));
+    totalScore += score;
+    p.textContent = `${option[0]}: ${randomValue}% (${score} pts)`;
                 resultDiv.appendChild(p);
             });
 
             clickCount++;
             document.getElementById('click-count').textContent = `Number of Effect Changes: ${clickCount}`;
+    let scoreDisplay = document.createElement('div');
+    scoreDisplay.className = "count-display";
+    scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
+    resultDiv.appendChild(scoreDisplay);
+      let tierText = "";
+      if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
+      else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
+      else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
+      else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
+      else tierText = "30 points or more : GOD";
+
+      let tierDisplay = document.createElement('div');
+      tierDisplay.className = "count-display";
+      tierDisplay.textContent = tierText;
+      resultDiv.appendChild(tierDisplay);
+
         }
 
         function findTargetOptions() {
+    searchCount = 0;
+    while (true) {
+        searchCount++;
+        let selected = [];
+        while (selected.length < 4) {
+            let randomIndex = Math.floor(Math.random() * options.length);
+            if (!selected.includes(randomIndex)) {
+                selected.push(randomIndex);
+            }
+        }
+        let selectedOptions = selected.map(index => options[index][0]);
+        let allFound = targetOptions.every(option => selectedOptions.includes(option));
+        if (allFound) {
+          let resultDiv = document.getElementById('result');
+          resultDiv.innerHTML = '';
+          let totalScore = 0;
+          selected.forEach(index => {
+            let option = options[index];
+            let rawValue = Math.random() * (option[2] - option[1]) + option[1];
+            let randomValue = option[3] ? rawValue.toFixed(1) : Math.round(rawValue);
+            let numericValue = parseFloat(randomValue);
+            let score = calculateScore(option[0], numericValue);
+            totalScore += score;
+
+            let p = document.createElement('div');
+            p.className = "option-slot";
+            p.innerHTML = `${option[0]}: ${randomValue}% <span style='color:red'>(${score} pts)</span>`;
+            resultDiv.appendChild(p);
+          });
+
+          let edCost = searchCount * 20000000;
+          document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
+          document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
+
+          let scoreDisplay = document.createElement('div');
+          scoreDisplay.className = "count-display";
+          scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
+          resultDiv.appendChild(scoreDisplay);
+
+          let tierText = "";
+          if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
+          else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
+          else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
+          else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
+          else tierText = "30 points or more : GOD";
+
+          let tierDisplay = document.createElement('div');
+          tierDisplay.className = "count-display";
+          tierDisplay.textContent = tierText;
+          resultDiv.appendChild(tierDisplay);
+
+          break;
+                }
+            }
+        }
+
+        clickCount = 0;
+        function findMaxTargetOptions() {
+            clickCount++;
+
             searchCount = 0;
+            const MAX_ED = 100_000_000_000_000;
 
             while (true) {
                 searchCount++;
@@ -146,49 +260,60 @@
                     }
                 }
 
-                let selectedOptions = selected.map(index => options[index][0]);
-                let allFound = targetOptions.every(option => selectedOptions.includes(option));
+                let selectedOptions = selected.map(index => options[index]);
 
-                if (allFound) {
+                let allMaxFound = targetOptions.every(target => {
+                    const option = selectedOptions.find(opt => opt[0] === target);
+                    if (!option) return false;
+                    const randomValue = Math.random() * (option[2] - option[1]) + option[1];
+                    return randomValue >= option[2]; // Check if value at max
+                });
+
+                let edCost = searchCount * 20000000;
+                if (edCost > MAX_ED || edCost == MAX_ED) {
+                    alert(`Failed to find all max target options within ED limit of ${MAX_ED.toLocaleString()}.\nTry again later.\nNumber of clicks: ${clickCount}\nNumber of rolls total: ${searchCount * clickCount}\nTotal ED cost: ${(clickCount * edCost).toLocaleString()} ED`);
+                    break;
+                }
+
+                if (allMaxFound) {
                     let resultDiv = document.getElementById('result');
-                    resultDiv.innerHTML = ''; 
+                    resultDiv.innerHTML = '';
 
-                    selected.forEach(index => {
-                        let option = options[index];
-                        let randomValue = Math.random() * (option[2] - option[1]) + option[1];
-                        randomValue = option[3] ? randomValue.toFixed(1) : Math.round(randomValue);
+                    selectedOptions.forEach(option => {
+                        const randomValue = Math.random() * (option[2] - option[1]) + option[1];
+                        const displayValue = option[3] ? randomValue.toFixed(1) : Math.round(randomValue);
 
                         let p = document.createElement('div');
                         p.className = "option-slot";
-                        p.textContent = `${option[0]}: ${randomValue}%`;
+                        p.textContent = `${option[0]}: ${displayValue}%`;
                         resultDiv.appendChild(p);
                     });
 
                     document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
-
-                    let edCost = searchCount * 20000000;
                     document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
                     break;
                 }
             }
         }
+
     </script>
 </head>
 <body>
-    <div class="item-box">
-        <div class="item-header">+9 Undead Dragon's Will - Mortal Weapon</div>
-        <img src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png" class="item-image" alt="Icon">
-        <div id="result">
-            <div class="option-slot">No applicable effects.</div>
-            <div class="option-slot">No applicable effects.</div>
-            <div class="option-slot">No applicable effects.</div>
-            <div class="option-slot">No applicable effects.</div>
-        </div>
-        <button class="button" onclick="getRandomOptions()">Change Effects</button>
-        <div id="click-count" class="count-display">Number of Effect Changes: 0</div>
-        <button class="button" onclick="findTargetOptions()">Best in slot option</button>
-        <div id="search-count" class="search-count"></div>
-        <div id="ed-cost" class="ed-display"></div>
-    </div>
+<div class="item-box">
+<div class="item-header">+12 Undead Dragon's Will - Mortal Weapon</div>
+<img alt="Icon" class="item-image" src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png"/><div style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;">All *enhancement effect are considered with +12</div>
+<div id="result">
+<div class="option-slot">No applicable effects.</div>
+<div class="option-slot">No applicable effects.</div>
+<div class="option-slot">No applicable effects.</div>
+<div class="option-slot">No applicable effects.</div>
+</div>
+<button class="button sticky-button" onclick="getRandomOptions()">Change Effects</button>
+<div class="count-display" id="click-count">Number of Effect Changes: 0</div>
+<button class="button" onclick="findTargetOptions()">Best In Slot Options</button>
+<button class="button" onclick="findMaxTargetOptions()">Find Max Target Options</button>
+<div class="search-count" id="search-count"></div>
+<div class="ed-display" id="ed-cost"></div>
+</div>
 </body>
 </html>
