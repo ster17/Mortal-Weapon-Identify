@@ -142,8 +142,10 @@ function getPointColor(score) {
         const targetOptions = [
             "Physical/Magical Attack Power (Enhancement Level)",
             "All Skill Damage (Enhancement Level)",
+            "Critical Damage (Enhancement Level)",
+            "Physical/Magical Attack Power Level (Enhancement Level)",
             "Deals continuous damage by n% of damage dealt for 3 seconds",
-            "Polarization: Attack/Attacked Damage",
+            "Polarization: Attack/Attacked Damage"
         ];
 
         function getRandomOptions() {
@@ -193,58 +195,60 @@ function getPointColor(score) {
         }
 
         function findTargetOptions() {
-    searchCount = 0;
-    while (true) {
-        searchCount++;
-        let selected = [];
-        while (selected.length < 4) {
-            let randomIndex = Math.floor(Math.random() * options.length);
-            if (!selected.includes(randomIndex)) {
-                selected.push(randomIndex);
-            }
-        }
-        let selectedOptions = selected.map(index => options[index][0]);
-        let allFound = targetOptions.every(option => selectedOptions.includes(option));
-        if (allFound) {
-          let resultDiv = document.getElementById('result');
-          resultDiv.innerHTML = '';
-          let totalScore = 0;
-          selected.forEach(index => {
-            let option = options[index];
-            let rawValue = Math.random() * (option[2] - option[1]) + option[1];
-            let randomValue = option[3] ? rawValue.toFixed(1) : Math.round(rawValue);
-            let numericValue = parseFloat(randomValue);
-            let score = calculateScore(option[0], numericValue);
-            totalScore += score;
+            searchCount = 0;
+            while (true) {
+                searchCount++;
+                let selected = [];
+                while (selected.length < 4) {
+                    let randomIndex = Math.floor(Math.random() * options.length);
+                    if (!selected.includes(randomIndex)) {
+                        selected.push(randomIndex);
+                    }
+                }
+                let selectedOptions = selected.map(index => options[index][0]);
+                // Require at least 4 target options present
+                let foundCount = selectedOptions.filter(opt => targetOptions.includes(opt)).length;
 
-            let p = document.createElement('div');
-            p.className = "option-slot";
-            p.innerHTML = `<strong>${option[0]}: ${randomValue}% <span style='color:${getPointColor(score)}'>(${score} pts)</span></strong>`;
-            resultDiv.appendChild(p);
-          });
+                if (foundCount >= 4) {
+                    let resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = '';
+                    let totalScore = 0;
+                    selected.forEach(index => {
+                        let option = options[index];
+                        let rawValue = Math.random() * (option[2] - option[1]) + option[1];
+                        let randomValue = option[3] ? rawValue.toFixed(1) : Math.round(rawValue);
+                        let numericValue = parseFloat(randomValue);
+                        let score = calculateScore(option[0], numericValue);
+                        totalScore += score;
 
-          let edCost = searchCount * 20000000;
-          document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
-          document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
+                        let p = document.createElement('div');
+                        p.className = "option-slot";
+                        p.innerHTML = `<strong>${option[0]}: ${randomValue}% <span style='color:${getPointColor(score)}'>(${score} pts)</span></strong>`;
+                        resultDiv.appendChild(p);
+                    });
 
-          let scoreDisplay = document.createElement('div');
-          scoreDisplay.className = "count-display";
-          scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
-          resultDiv.appendChild(scoreDisplay);
+                    let edCost = searchCount * 20000000;
+                    document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
+                    document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
 
-          let tierText = "";
-          if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
-          else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
-          else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
-          else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
-          else tierText = "30 points or more : GOD";
+                    let scoreDisplay = document.createElement('div');
+                    scoreDisplay.className = "count-display";
+                    scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
+                    resultDiv.appendChild(scoreDisplay);
 
-          let tierDisplay = document.createElement('div');
-          tierDisplay.className = "count-display";
-          tierDisplay.textContent = tierText;
-          resultDiv.appendChild(tierDisplay);
+                    let tierText = "";
+                    if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
+                    else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
+                    else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
+                    else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
+                    else tierText = "30 points or more : GOD";
 
-          break;
+                    let tierDisplay = document.createElement('div');
+                    tierDisplay.className = "count-display";
+                    tierDisplay.textContent = tierText;
+                    resultDiv.appendChild(tierDisplay);
+
+                    break;
                 }
             }
         }
@@ -269,39 +273,68 @@ function getPointColor(score) {
 
                 let selectedOptions = selected.map(index => options[index]);
 
-                let allMaxFound = targetOptions.every(target => {
-                    const option = selectedOptions.find(opt => opt[0] === target);
-                    if (!option) return false;
-                    const randomValue = Math.random() * (option[2] - option[1]) + option[1];
-                    return randomValue >= option[2]; // Check if value at max
-                });
+                // For each selected option, generate one value and calculate points
+                let foundCount = 0;
+                let totalScore = 0;
+                let results = [];
+
+                for (const option of selectedOptions) {
+                    let rawValue = Math.random() * (option[2] - option[1]) + option[1];
+                    if (rawValue < option[2] - 0.5) {
+                        // If below max threshold minus 0.5, skip counting as max for the foundCount
+                    } else {
+                        if (targetOptions.includes(option[0])) foundCount++;
+                    }
+                    let displayValue = option[3] ? rawValue.toFixed(1) : Math.round(rawValue);
+                    let score = calculateScore(option[0], parseFloat(displayValue));
+                    totalScore += score;
+                    results.push({name: option[0], value: displayValue, score: score});
+                }
 
                 let edCost = searchCount * 20000000;
-                if (edCost > MAX_ED || edCost == MAX_ED) {
-                    alert(`Failed to find all max target options within ED limit of ${MAX_ED.toLocaleString()}.\nTry again later.\nNumber of clicks: ${clickCount}\nNumber of rolls total: ${searchCount * clickCount}\nTotal ED cost: ${(clickCount * edCost).toLocaleString()} ED`);
+                if (edCost >= MAX_ED) {
+                    alert(`Failed to find target options within ED limit of ${MAX_ED.toLocaleString()}.\nTry again later.\nNumber of clicks: ${clickCount}\nNumber of rolls total: ${searchCount * clickCount}\nTotal ED cost: ${(clickCount * edCost).toLocaleString()} ED`);
                     break;
                 }
 
-                if (allMaxFound) {
+                if (foundCount >= 4 && totalScore >= 30) {
                     let resultDiv = document.getElementById('result');
                     resultDiv.innerHTML = '';
 
-                    selectedOptions.forEach(option => {
-                        const randomValue = Math.random() * (option[2] - option[1]) + option[1];
-                        const displayValue = option[3] ? randomValue.toFixed(1) : Math.round(randomValue);
-
+                    for (const res of results) {
                         let p = document.createElement('div');
                         p.className = "option-slot";
-                        p.textContent = `${option[0]}: ${displayValue}%`;
+                        p.innerHTML = `<strong>${res.name}: ${res.value}% <span style='color:${getPointColor(res.score)}'>(${res.score} pts)</span></strong>`;
                         resultDiv.appendChild(p);
-                    });
+                    }
 
                     document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
                     document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
+
+
+                    let scoreDisplay = document.createElement('div');
+                    scoreDisplay.className = "count-display";
+                    scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
+                    resultDiv.appendChild(scoreDisplay);
+
+
+                    let tierText = "";
+                    if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
+                    else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
+                    else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
+                    else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
+                    else tierText = "30 points or more : GOD";
+
+                    let tierDisplay = document.createElement('div');
+                    tierDisplay.className = "count-display";
+                    tierDisplay.textContent = tierText;
+                    resultDiv.appendChild(tierDisplay);
+
                     break;
                 }
             }
         }
+
 
     </script>
 </head>
@@ -320,9 +353,11 @@ function getPointColor(score) {
 <button class="button sticky-button" onclick="getRandomOptions()">Change Effects</button>
 <div class="count-display" id="click-count">Number of Effect Changes: 0</div>
 <button class="button" onclick="findTargetOptions()">Best In Slot Options</button>
-<button class="button" onclick="findMaxTargetOptions()">Find Max Target Options</button>
+<button class="button" onclick="findMaxTargetOptions()">Find God Tier Options</button>
 <div class="search-count" id="search-count"></div>
 <div class="ed-display" id="ed-cost"></div>
 </div>
 </body>
 </html>
+
+
