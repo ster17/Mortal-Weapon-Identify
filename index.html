@@ -1,24 +1,29 @@
 <!DOCTYPE html>
+<html>
 
-<html lang="en">
+<html>
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Death Dragon Weapon Appraisal Adventure</title>
-<style>
-        body {
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSFiddle grcwLu6f</title>
+
+  <style>
+    body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #1e1e1e;
             color: white;
         }
         .item-box {
-            width: 350px;
-            margin: 50px auto;
-            background: #222;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        width: 700px; /* expand to fit longest stat name */
+         max-width: 95%; /* keep it responsive */
+         margin: 50px auto;
+         background: #222;
+         padding: 15px;
+         border-radius: 10px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+
+
         }
         .item-header {
             background: black;
@@ -71,7 +76,7 @@
             color: lightblue;
             font-size: 1.2em;
         }
-    
+ 
     .sticky-button {
       position: sticky;
       top: 0;
@@ -80,9 +85,70 @@
     .red-points {
       color: red;
     }
-</style>
-<script>
-function getPointColor(score) {
+    :root { --control-h: 24px; } /* single source of truth for control height */
+
+.manual-stat {
+  display: flex;
+  align-items: center;   /* vertical centering */
+  gap: 8px;
+}
+
+.manual-stat select,
+.manual-stat input {
+  height: var(--control-h);
+  box-sizing: border-box;
+}
+
+.manual-stat select { flex: 1; }   /* dropdown fills remaining space */
+.manual-stat input  { width: 50px; }
+
+.remove-btn {
+  display: inline-flex;           /* centers the X inside the button */
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;                     /* no extra vertical padding */
+  border: none;
+  border-radius: 8px;
+  background: red;
+  color: #fff;
+  font-weight: bold;
+  line-height: 1;                 /* avoid baseline offset */
+  flex-shrink: 0;
+}
+  </style>
+
+  
+</head>
+<body>
+  <div class="item-box">
+<div class="item-header">+12 Undead Dragon's Will - Mortal Weapon</div>
+<img alt="Icon" class="item-image" src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png"/><div style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;">All *enhancement effect are considered with +12</div><div style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;">
+  Max possible point is 34
+<div id="manual-input" class="item-box" style="margin-top:20px;">
+  <div class="item-header">Manual Stat Entry</div>
+  <div id="manual-stats">
+  </div>
+  <button class="button" onclick="addManualStat()">+ Add Stat</button>
+  <button class="button" onclick="calculateManualStats()">Calculate Manual Score</button>
+</div>
+<div id="result">
+<div class="option-slot">No applicable effects.</div>
+<div class="option-slot">No applicable effects.</div>
+<div class="option-slot">No applicable effects.</div>
+<div class="option-slot">No applicable effects.</div>
+</div>
+<button class="button sticky-button" onclick="getRandomOptions()">Change Effects</button>
+<div class="count-display" id="click-count">Number of Effect Changes: 0</div>
+<button class="button" onclick="findTargetOptions()">Best In Slot Options</button>
+<button class="button" onclick="findMaxTargetOptions()">Find God Tier Options</button>
+<div class="search-count" id="search-count"></div>
+<div class="ed-display" id="ed-cost"></div>
+</div>
+
+  <script>
+    function getPointColor(score) {
     if (score <= 4) return 'green';
     else if (score <= 6) return '#d121d1';
     else if (score <= 7.5) return 'orange';
@@ -125,7 +191,7 @@ function getPointColor(score) {
             ["Deals continuous damage by n% of damage dealt for 3 seconds", 5, 12, false],
             ["Ignore Enemy Physical/Magical Defense", 4.5, 8, false],
             ["Physical/Magical Attack Power", 6, 13, false],
-            ["Polarization: Attack/Attacked Damage", 5, 12, false],
+            ["Polarize: Attack/Attacked Damage", 5, 12, false],
             ["Critical Damage", 6, 13, false],
             ["Physical/Magical Attack Power Level", 6, 13, false],
             ["Physical/Magical Defense", 6, 13, false],
@@ -334,30 +400,127 @@ function getPointColor(score) {
                 }
             }
         }
+function addManualStat() {
+    const container = document.getElementById('manual-stats');
+    const currentStats = container.querySelectorAll('.manual-stat');
+
+    if (currentStats.length >= 4) {
+        alert("You can only add up to 4 stats.");
+        return;
+    }
+
+    // Remove placeholder
+    if (currentStats.length === 0 && container.firstChild && container.firstChild.textContent.includes("No manual stats")) {
+        container.innerHTML = "";
+    }
+
+    const div = document.createElement('div');
+    div.className = "option-slot manual-stat";
+
+    div.style.display = "flex";
+    div.style.alignItems = "center";
+    div.style.gap = "8px";
+
+    // Dropdown for stat selection
+    const select = document.createElement('select');
+    select.style.flex = "1";
+
+    // Filter out already chosen stats
+    const chosenStats = Array.from(container.querySelectorAll('select')).map(s => s.value);
+    for (let opt of options) {
+        if (!chosenStats.includes(opt[0])) {
+            let o = document.createElement('option');
+            o.value = opt[0];
+            o.textContent = opt[0];
+            select.appendChild(o);
+        }
+    }
+
+    // Dropdown for values
+    const valueSelect = document.createElement('select');
+    valueSelect.style.width = "90px";
+
+function populateValues(statName) {
+    valueSelect.innerHTML = "";
+    const optDef = options.find(o => o[0] === statName);
+    if (!optDef) return;
+
+    const [min, max, allowDecimal] = [optDef[1], optDef[2], optDef[3]];
+    let step = allowDecimal ? 0.1 : 1;
+
+    let steps = Math.round((max - min) / step);
+
+    for (let i = 0; i <= steps; i++) {
+        let v = min + i * step;
+        let option = document.createElement('option');
+        option.value = allowDecimal ? v.toFixed(1) : Math.round(v);
+        option.textContent = option.value;
+        valueSelect.appendChild(option);
+    }
+}
 
 
-    </script>
-</head>
-<body>
-<div class="item-box">
-<div class="item-header">+12 Undead Dragon's Will - Mortal Weapon</div>
-<img alt="Icon" class="item-image" src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png"/><div style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;">All *enhancement effect are considered with +12</div><div style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;">
-  Max possible point is 34
-</div>
-<div id="result">
-<div class="option-slot">No applicable effects.</div>
-<div class="option-slot">No applicable effects.</div>
-<div class="option-slot">No applicable effects.</div>
-<div class="option-slot">No applicable effects.</div>
-</div>
-<button class="button sticky-button" onclick="getRandomOptions()">Change Effects</button>
-<div class="count-display" id="click-count">Number of Effect Changes: 0</div>
-<button class="button" onclick="findTargetOptions()">Best In Slot Options</button>
-<button class="button" onclick="findMaxTargetOptions()">Find God Tier Options</button>
-<div class="search-count" id="search-count"></div>
-<div class="ed-display" id="ed-cost"></div>
-</div>
+    // Initialize values for first option
+    populateValues(select.value);
+
+    // Update values when stat changes
+    select.addEventListener('change', () => populateValues(select.value));
+
+    // Remove button
+   const removeBtn = document.createElement('button');
+removeBtn.textContent = "X";
+removeBtn.className = "remove-btn"; // don't use the generic .button styles here
+removeBtn.onclick = () => div.remove();
+
+
+    div.appendChild(select);
+    div.appendChild(valueSelect);
+    div.appendChild(removeBtn);
+    container.appendChild(div);
+}
+
+function calculateManualStats() {
+    const container = document.getElementById('manual-stats');
+    const divs = container.querySelectorAll('.manual-stat');
+    let resultDiv = document.getElementById('result');
+    resultDiv.innerHTML = '';
+    let totalScore = 0;
+
+    if (divs.length === 0) {
+        resultDiv.innerHTML = "<div class='option-slot'>No manual stats chosen yet.</div>";
+        return;
+    }
+
+    divs.forEach(d => {
+        const stat = d.querySelector('select').value;
+        const value = parseFloat(d.querySelectorAll('select')[1].value); // second select is the value picker
+        let score = calculateScore(stat, value);
+        totalScore += score;
+
+        let p = document.createElement('div');
+        p.className = "option-slot";
+        p.innerHTML = `<strong>${stat}: ${value}% <span style='color:${getPointColor(score)}'>(${score} pts)</span></strong>`;
+        resultDiv.appendChild(p);
+    });
+
+    let scoreDisplay = document.createElement('div');
+    scoreDisplay.className = "count-display";
+    scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
+    resultDiv.appendChild(scoreDisplay);
+
+    let tierText = "";
+    if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
+    else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
+    else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
+    else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end";
+    else tierText = "30 points or more : GOD";
+
+    let tierDisplay = document.createElement('div');
+    tierDisplay.className = "count-display";
+    tierDisplay.textContent = tierText;
+    resultDiv.appendChild(tierDisplay);
+}
+
+  </script>
 </body>
 </html>
-
-
