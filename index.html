@@ -540,18 +540,18 @@ function fixDuplicateStats() {
 
     statsDivs.forEach(div => {
         const statSelect = div.querySelector('select:first-child');
-        const currentValue = statSelect.value;
+        let currentValue = statSelect.value;
 
         if (usedStats.has(currentValue)) {
-            // Duplicate found, replace with a default safe stat
-            const defaultStat = "Deals continuous damage by n% of damage dealt for 3 seconds";
-            statSelect.value = defaultStat;
+            // Duplicate found, pick the first available stat that is not used
+            const availableStat = options.find(opt => !usedStats.has(opt[0]));
+            if (availableStat) {
+                currentValue = availableStat[0];
+                statSelect.value = currentValue;
 
-            // Re-populate value dropdown for the new stat
-            const valueSelect = div.querySelector('select:nth-child(2)');
-            const optDef = options.find(o => o[0] === defaultStat);
-            if (optDef) {
-                const [min, max, allowDecimal] = [optDef[1], optDef[2], optDef[3]];
+                // Update value dropdown for the new stat
+                const valueSelect = div.querySelector('select:nth-child(2)');
+                const [min, max, allowDecimal] = [availableStat[1], availableStat[2], availableStat[3]];
                 valueSelect.innerHTML = '';
                 const step = allowDecimal ? 0.1 : 1;
                 const steps = Math.round((max - min) / step);
@@ -566,7 +566,7 @@ function fixDuplicateStats() {
             }
         }
 
-        usedStats.add(statSelect.value);
+        usedStats.add(currentValue);
     });
 }
 
