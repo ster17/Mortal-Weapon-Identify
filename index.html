@@ -512,8 +512,8 @@ function populateValues(statName) {
 
     // Update values when stat changes
     select.addEventListener('change', () => {
-        populateValues(select.value); // update value options
-        updateManualStatOptions();    // remove selected stat from other dropdowns
+    populateValues(select.value);
+    fixDuplicateStats();   // fix any duplicates automatically
 });
 
     // Remove button
@@ -529,6 +529,45 @@ removeBtn.onclick = () => {div.remove();
     div.appendChild(valueSelect);
     div.appendChild(removeBtn);
     container.appendChild(div);
+  fixDuplicateStats();      // ensure no duplicate on first add
+}
+function fixDuplicateStats() {
+    const container = document.getElementById('manual-stats');
+    const statsDivs = container.querySelectorAll('.manual-stat');
+
+    // Track which stats are already used
+    const usedStats = new Set();
+
+    statsDivs.forEach(div => {
+        const statSelect = div.querySelector('select:first-child');
+        const currentValue = statSelect.value;
+
+        if (usedStats.has(currentValue)) {
+            // Duplicate found, replace with a default safe stat
+            const defaultStat = "Deals continuous damage by n% of damage dealt for 3 seconds";
+            statSelect.value = defaultStat;
+
+            // Re-populate value dropdown for the new stat
+            const valueSelect = div.querySelector('select:nth-child(2)');
+            const optDef = options.find(o => o[0] === defaultStat);
+            if (optDef) {
+                const [min, max, allowDecimal] = [optDef[1], optDef[2], optDef[3]];
+                valueSelect.innerHTML = '';
+                const step = allowDecimal ? 0.1 : 1;
+                const steps = Math.round((max - min) / step);
+                for (let i = 0; i <= steps; i++) {
+                    let v = min + i * step;
+                    const opt = document.createElement('option');
+                    opt.value = allowDecimal ? v.toFixed(1) : Math.round(v);
+                    opt.textContent = opt.value;
+                    valueSelect.appendChild(opt);
+                }
+                valueSelect.value = valueSelect.options[0].value;
+            }
+        }
+
+        usedStats.add(statSelect.value);
+    });
 }
 
 function calculateManualStats() {
