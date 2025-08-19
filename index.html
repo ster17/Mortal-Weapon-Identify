@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>UDW Identification Simulator</title>
+  <title>UDW Identify</title>
 
   <style>
     body {
@@ -15,8 +15,8 @@
             color: white;
         }
         .item-box {
-        width: 700px;
-         max-width: 95%; 
+        width: 700px; /* expand to fit longest stat name */
+         max-width: 95%; /* keep it responsive */
          margin: 50px auto;
          background: #222;
          padding: 15px;
@@ -123,29 +123,52 @@
 </head>
 <body>
   <div class="item-box">
-<div class="item-header">+12 Undead Dragon's Will - Mortal Weapon</div>
-<img alt="Icon" class="item-image" src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png"/><div style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;">All *enhancement effect are considered with +12</div><div style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;">
-  Max possible point is 34
-<div id="manual-input" class="item-box" style="margin-top:20px;">
-  <div class="item-header">Manual Stat Entry</div>
-  <div id="manual-stats">
+  <div class="item-header">+12 Undead Dragon's Will - Mortal Weapon</div>
+  <img
+    alt="Icon"
+    class="item-image"
+    src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png"
+  />
+  <div
+    style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;"
+  >
+    All *enhancement effect are considered with +12
   </div>
-  <button class="button" onclick="addManualStat()">+ Add Stat</button>
-  <button class="button" onclick="calculateManualStats()">Calculate Manual Score</button>
+  <div
+    style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;"
+  >
+    Max possible point is 34
+    <div id="manual-input" class="item-box" style="margin-top:20px;">
+      <div class="item-header">Manual Stat Entry</div>
+      <div id="manual-stats"></div>
+      <button class="button" onclick="addManualStat()">+ Add Stat</button>
+      <button class="button" onclick="calculateManualStats()">
+        Calculate Manual Score
+      </button>
+    </div>
+    <div id="result">
+      <div class="option-slot">No applicable effects.</div>
+      <div class="option-slot">No applicable effects.</div>
+      <div class="option-slot">No applicable effects.</div>
+      <div class="option-slot">No applicable effects.</div>
+    </div>
+    <button class="button sticky-button" onclick="getRandomOptions()">
+      Change Effects
+    </button>
+    <div class="count-display" id="click-count">
+      Number of Effect Changes: 0
+    </div>
+    <button class="button" onclick="findTargetOptions()">
+      Best In Slot Options
+    </button>
+    <button class="button" onclick="findMaxTargetOptions()">
+      Find God Tier Options
+    </button>
+    <div class="search-count" id="search-count"></div>
+    <div class="ed-display" id="ed-cost"></div>
+  </div>
 </div>
-<div id="result">
-<div class="option-slot">No applicable effects.</div>
-<div class="option-slot">No applicable effects.</div>
-<div class="option-slot">No applicable effects.</div>
-<div class="option-slot">No applicable effects.</div>
-</div>
-<button class="button sticky-button" onclick="getRandomOptions()">Change Effects</button>
-<div class="count-display" id="click-count">Number of Effect Changes: 0</div>
-<button class="button" onclick="findTargetOptions()">Best In Slot Options</button>
-<button class="button" onclick="findMaxTargetOptions()">Find God Tier Options</button>
-<div class="search-count" id="search-count"></div>
-<div class="ed-display" id="ed-cost"></div>
-</div>
+
 
   <script>
     function getPointColor(score) {
@@ -169,7 +192,7 @@
             "All Skill Damage": [[13, 6.5], [12, 6], [11, 5], [10, 4.5], [9, 4.5], [8, 4], [7, 3.5], [6, 3]],
             "Strength Skill Damage": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3], [7, 2.5], [6, 2]],
             "Bravery Skill Damage": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3], [7, 2.5], [6, 2]],
-            "Polarize: Attack/Attacked Damage": [[12, 8], [11, 7], [10, 6.5], [9, 6], [8, 5], [7, 4.5], [6, 4], [5, 3.5]]
+      "Polarize: Attack/Attacked Damage": [[12, 8], [11, 7], [10, 6.5], [9, 6], [8, 5], [7, 4.5], [6, 4], [5, 3.5]]
         };
 
         function calculateScore(stat, value) {
@@ -211,7 +234,7 @@
             "Critical Damage (Enhancement Level)",
             "Physical/Magical Attack Power Level (Enhancement Level)",
             "Deals continuous damage by n% of damage dealt for 3 seconds",
-            "Polarization: Attack/Attacked Damage"
+            "Polarize: Attack/Attacked Damage"
         ];
 
         function getRandomOptions() {
@@ -439,6 +462,30 @@ function addManualStat() {
     // Dropdown for values
     const valueSelect = document.createElement('select');
     valueSelect.style.width = "90px";
+function updateManualStatOptions() {
+    const container = document.getElementById('manual-stats');
+    const selects = container.querySelectorAll('.manual-stat select:first-child');
+
+    // Collect all currently selected values
+    const selectedValues = Array.from(selects).map(s => s.value);
+
+    selects.forEach(select => {
+        const currentValue = select.value;
+        select.innerHTML = ''; // Clear current options
+
+        for (let opt of options) {
+            if (!selectedValues.includes(opt[0]) || opt[0] === currentValue) {
+                let o = document.createElement('option');
+                o.value = opt[0];
+                o.textContent = opt[0];
+                select.appendChild(o);
+            }
+        }
+
+        // Restore previous selection
+        select.value = currentValue;
+    });
+}
 
 function populateValues(statName) {
     valueSelect.innerHTML = "";
@@ -464,13 +511,18 @@ function populateValues(statName) {
     populateValues(select.value);
 
     // Update values when stat changes
-    select.addEventListener('change', () => populateValues(select.value));
+    select.addEventListener('change', () => {
+        populateValues(select.value); // update value options
+        updateManualStatOptions();    // remove selected stat from other dropdowns
+});
 
     // Remove button
    const removeBtn = document.createElement('button');
 removeBtn.textContent = "X";
 removeBtn.className = "remove-btn"; // don't use the generic .button styles here
-removeBtn.onclick = () => div.remove();
+removeBtn.onclick = () => {div.remove();
+    updateManualStatOptions(); // refresh other dropdowns
+};
 
 
     div.appendChild(select);
