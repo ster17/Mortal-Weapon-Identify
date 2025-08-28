@@ -5,7 +5,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>UDW Identify</title>
+  <title>UDW Stats Change</title>
 
   <style>
     body {
@@ -125,7 +125,6 @@
   font-family: Arial, sans-serif;
   opacity: 0.8;
 }
-
   </style>
 
   
@@ -183,7 +182,6 @@
     <div class="credit">
   Credit: ster - trunjthanh (discord), Lynnie - raverie (discord)
 </div>
-
 
   <script>
     function getPointColor(score) {
@@ -438,6 +436,23 @@
                 }
             }
         }
+        function applySpecialRules(stats) {
+    // stats is an array of {name, value, score}
+    let hasStrength = stats.some(s => s.name === "Strength Skill Damage");
+    let hasBravery = stats.some(s => s.name === "Bravery Skill Damage");
+
+    if (hasStrength && hasBravery) {
+        // Remove points from Strength
+        stats = stats.map(s => {
+            if (s.name === "Strength Skill Damage") {
+                return {...s, score: 0};
+            }
+            return s;
+        });
+    }
+    return stats;
+}
+
 function addManualStat() {
     const container = document.getElementById('manual-stats');
     const currentStats = container.querySelectorAll('.manual-stat');
@@ -597,17 +612,26 @@ function calculateManualStats() {
         return;
     }
 
-    divs.forEach(d => {
-        const stat = d.querySelector('select').value;
-        const value = parseFloat(d.querySelectorAll('select')[1].value); // second select is the value picker
-        let score = calculateScore(stat, value);
-        totalScore += score;
+   let collected = [];
 
-        let p = document.createElement('div');
-        p.className = "option-slot";
-        p.innerHTML = `<strong>${stat}: ${value}% <span style='color:${getPointColor(score)}'>(${score} pts)</span></strong>`;
-        resultDiv.appendChild(p);
-    });
+divs.forEach(d => {
+    const stat = d.querySelector('select').value;
+    const value = parseFloat(d.querySelectorAll('select')[1].value);
+    let score = calculateScore(stat, value);
+    collected.push({name: stat, value: value, score: score});
+});
+
+// Apply the Strength/Bravery filter
+collected = applySpecialRules(collected);
+
+collected.forEach(res => {
+    totalScore += res.score;
+    let p = document.createElement('div');
+    p.className = "option-slot";
+    p.innerHTML = `<strong>${res.name}: ${res.value}% <span style='color:${getPointColor(res.score)}'>(${res.score} pts)</span></strong>`;
+    resultDiv.appendChild(p);
+});
+
 
     let scoreDisplay = document.createElement('div');
     scoreDisplay.className = "count-display";
@@ -626,7 +650,6 @@ function calculateManualStats() {
     tierDisplay.textContent = tierText;
     resultDiv.appendChild(tierDisplay);
 }
-
   </script>
 </body>
 </html>
