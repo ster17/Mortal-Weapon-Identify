@@ -411,87 +411,88 @@ function findTargetOptions() {
 }
 
 
-        clickCount = 0;
-        function findMaxTargetOptions() {
-            clickCount++;
+       clickCount = 0;
+function findMaxTargetOptions() {
+    clickCount++;
 
-            searchCount = 0;
-            const MAX_ED = 100_000_000_000_000;
+    searchCount = 0;
+    const MAX_ED = 100_000_000_000_000;
 
-            while (true) {
-                searchCount++;
+    const resultDiv = document.getElementById('result');
+    const rngLogDiv = document.getElementById('rng-log');
+    resultDiv.innerHTML = '';
+    rngLogDiv.innerHTML = '';
 
-                let selected = [];
-                while (selected.length < 4) {
-                    let randomIndex = Math.floor(Math.random() * options.length);
-                    if (!selected.includes(randomIndex)) {
-                        selected.push(randomIndex);
-                    }
-                }
+    while (true) {
+        searchCount++;
+        let selected = [];
+        let logs = [];
 
-                let selectedOptions = selected.map(index => options[index]);
-
-                // For each selected option, generate one value and calculate points
-                let foundCount = 0;
-                let totalScore = 0;
-                let results = [];
-
-                for (const option of selectedOptions) {
-                    let rawValue = Math.random() * (option[2] - option[1]) + option[1];
-                    if (rawValue < option[2] - 0.5) {
-                        // If below max threshold minus 0.5, skip counting as max for the foundCount
-                    } else {
-                        if (targetOptions.includes(option[0])) foundCount++;
-                    }
-                    let displayValue = option[3] ? rawValue.toFixed(1) : Math.round(rawValue);
-                    let score = calculateScore(option[0], parseFloat(displayValue));
-                    totalScore += score;
-                    results.push({name: option[0], value: displayValue, score: score});
-                }
-
-                let edCost = searchCount * 20000000;
-                if (edCost >= MAX_ED) {
-                    alert(`Failed to find target options within ED limit of ${MAX_ED.toLocaleString()}.\nTry again later.\nNumber of clicks: ${clickCount}\nNumber of rolls total: ${searchCount * clickCount}\nTotal ED cost: ${(clickCount * edCost).toLocaleString()} ED`);
-                    break;
-                }
-
-                if (foundCount >= 4 && totalScore >= 30) {
-                    let resultDiv = document.getElementById('result');
-                    resultDiv.innerHTML = '';
-
-                    for (const res of results) {
-                        let p = document.createElement('div');
-                        p.className = "option-slot";
-                        p.innerHTML = `<strong>${res.name}: ${res.value}% <span style='color:${getPointColor(res.score)}'>(${res.score} pts)</span></strong>`;
-                        resultDiv.appendChild(p);
-                    }
-
-                    document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
-                    document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
-
-
-                    let scoreDisplay = document.createElement('div');
-                    scoreDisplay.className = "count-display";
-                    scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
-                    resultDiv.appendChild(scoreDisplay);
-
-
-                    let tierText = "";
-                    if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
-                    else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
-                    else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
-                    else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
-                    else tierText = "30 points or more : GOD";
-
-                    let tierDisplay = document.createElement('div');
-                    tierDisplay.className = "count-display";
-                    tierDisplay.textContent = tierText;
-                    resultDiv.appendChild(tierDisplay);
-
-                    break;
-                }
+        // Select 4 unique stats using the RNG system
+        while (selected.length < 4) {
+            const rolled = rollStat(); // new RNG system
+            if (!selected.some(s => s.name === rolled.name)) {
+                selected.push(rolled);
+                logs.push(rolled.log);
             }
         }
+
+        // Count how many are target options
+        let foundCount = selected.filter(opt => targetOptions.includes(opt.name)).length;
+
+        // Calculate total score
+        let totalScore = selected.reduce((sum, opt) => sum + calculateScore(opt.name, parseFloat(opt.value)), 0);
+
+        // Check ED limit
+        let edCost = searchCount * 20000000;
+        if (edCost >= MAX_ED) {
+            alert(`Failed to find target options within ED limit of ${MAX_ED.toLocaleString()}.\nTry again later.\nNumber of clicks: ${clickCount}\nNumber of rolls total: ${searchCount * clickCount}\nTotal ED cost: ${(clickCount * edCost).toLocaleString()} ED`);
+            break;
+        }
+
+        if (foundCount >= 4 && totalScore >= 30) {
+            // Display results
+            selected.forEach(opt => {
+                let score = calculateScore(opt.name, parseFloat(opt.value));
+                let p = document.createElement('div');
+                p.className = "option-slot";
+                p.innerHTML = `<strong>${opt.name}: ${opt.value}% <span style='color:${getPointColor(score)}'>(${score} pts)</span></strong>`;
+                resultDiv.appendChild(p);
+            });
+
+            // Display RNG logs
+            logs.forEach(l => {
+                let logEntry = document.createElement('div');
+                logEntry.innerHTML = l;
+                rngLogDiv.appendChild(logEntry);
+            });
+
+            document.getElementById('search-count').textContent = `Repetition Count for Desired Effects: ${searchCount}`;
+            document.getElementById('ed-cost').textContent = `Required ED: ${edCost.toLocaleString()} ED`;
+
+            let scoreDisplay = document.createElement('div');
+            scoreDisplay.className = "count-display";
+            scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
+            resultDiv.appendChild(scoreDisplay);
+
+            // Tier text
+            let tierText = "";
+            if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
+            else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
+            else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
+            else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
+            else tierText = "30 points or more : GOD";
+
+            let tierDisplay = document.createElement('div');
+            tierDisplay.className = "count-display";
+            tierDisplay.textContent = tierText;
+            resultDiv.appendChild(tierDisplay);
+
+            break;
+        }
+    }
+}
+
         function applySpecialRules(stats) {
     // stats is an array of {name, value, score}
     let hasStrength = stats.some(s => s.name === "Strength Skill Damage");
