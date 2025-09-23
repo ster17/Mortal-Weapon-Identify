@@ -126,6 +126,17 @@
   font-family: Arial, sans-serif;
   opacity: 0.8;
 }
+.option-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 4px 0;
+}
+
+.option-slot strong {
+    flex: 1;
+}
+
   </style>
 
   
@@ -166,6 +177,9 @@
       <div class="option-slot">No applicable effects.</div>
       <div class="option-slot">No applicable effects.</div>
     </div>
+    <div id="reroll-counter">Re-rolls used: 0</div>
+    <div id="best-result"></div>
+    <div id="god-result"></div>
     <button class="button sticky-button" onclick="getRandomOptions()">
       Change Effects
     </button>
@@ -192,6 +206,7 @@
     else if (score <= 7.5) return 'orange';
     else return 'red';
 }
+let rerollCount = 0;
 
         let clickCount = 0;
         const scoringTable = {
@@ -207,7 +222,7 @@
             "All Skill Damage": [[13, 6.5], [12, 6], [11, 5], [10, 4.5], [9, 4.5], [8, 4], [7, 3.5], [6, 3]],
             "Strength Skill Damage": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3], [7, 2.5], [6, 2]],
             "Bravery Skill Damage": [[13, 5.5], [12, 5], [11, 4.5], [10, 4], [9, 3.5], [8, 3], [7, 2.5], [6, 2]],
-      "Polarize: Attack/Attacked Damage": [[12, 8.5], [11, 8], [10, 7], [9, 6.5], [8, 6], [7, 5.5], [6, 5], [5, 4.5]]
+      	    "Polarize: Attack/Attacked Damage": [[12, 8.5], [11, 8], [10, 7], [9, 6.5], [8, 6], [7, 5.5], [6, 5], [5, 4.5]]
         };
 
         function calculateScore(stat, value) {
@@ -299,20 +314,26 @@ function getRandomOptions() {
     }
 
     let totalScore = 0;
-    selected.forEach(opt => {
-        let score = calculateScore(opt.name, parseFloat(opt.value));
-        totalScore += score;
+    selected.forEach((opt, i) => {
+    let score = calculateScore(opt.name, parseFloat(opt.value));
+    totalScore += score;
 
-        let p = document.createElement('div');
-        p.className = "option-slot";
-        p.innerHTML = `<strong>${opt.name}: ${opt.value}% <span style='color:${getPointColor(score)}'>(${score} pts)</span></strong>`;
-        resultDiv.appendChild(p);
+    let p = document.createElement('div');
+    p.className = "option-slot";
+p.innerHTML = `
+    <strong>${opt.name}: ${opt.value}% 
+        <span style='color:${getPointColor(score)}'>(${score} pts)</span>
+    </strong>
+    <button class="button" onclick="rerollStat(${i})">Re-roll</button>
+`;
+    resultDiv.appendChild(p);
 
-        // Append RNG details
-        let logEntry = document.createElement('div');
-        logEntry.innerHTML = opt.log;
-        rngLogDiv.appendChild(logEntry);
-    });
+    // Append RNG details
+    let logEntry = document.createElement('div');
+    logEntry.innerHTML = opt.log;
+    rngLogDiv.appendChild(logEntry);
+});
+
 
     clickCount++;
     document.getElementById('click-count').textContent = `Number of Effect Changes: ${clickCount}`;
@@ -404,6 +425,21 @@ function findTargetOptions() {
             tierDisplay.className = "count-display";
             tierDisplay.textContent = tierText;
             resultDiv.appendChild(tierDisplay);
+
+bestOptions.forEach((opt, i) => {
+    let score = calculateScore(opt.name, parseFloat(opt.value));
+    let color = getPointColor(score);
+
+    let p = document.createElement('div');
+    p.className = "option-slot";
+    p.innerHTML = `
+        <strong>${opt.name}: ${opt.value}% 
+            <span style='color:${color}'>(${score} pts)</span>
+        </strong>
+        <button class="button" onclick="rerollStat(${i}, 'best')">Re-roll</button>
+    `;
+    bestDiv.appendChild(p);
+});
 
             break;
         }
@@ -707,6 +743,82 @@ collected.forEach(res => {
     tierDisplay.textContent = tierText;
     resultDiv.appendChild(tierDisplay);
 }
+
+function rerollStat(index) {
+    const resultDiv = document.getElementById('result');
+    const optionSlots = resultDiv.querySelectorAll('.option-slot');
+
+    if (index < 0 || index >= optionSlots.length) return;
+
+    // Collect current stat names
+const currentStats = Array.from(optionSlots).map(d => {
+    let raw = d.querySelector('strong').textContent.split(':')[0];
+    return normalizeStatName(raw);
+});
+
+const statsWithoutCurrent = currentStats.filter((_, i) => i !== index);
+
+let newRoll;
+do {
+    newRoll = rollStat();
+    console.log("Trying new roll:", newRoll.name);
+} while (statsWithoutCurrent.includes(normalizeStatName(newRoll.name)));
+
+    // Calculate score
+    const score = calculateScore(newRoll.name, parseFloat(newRoll.value));
+    const color = getPointColor(score);
+
+    // Replace this slot’s innerHTML
+    optionSlots[index].innerHTML = `
+        <strong>${newRoll.name}: ${newRoll.value}% 
+            <span style="color:${color}">(${score} pts)</span>
+        </strong>
+        <button class="button" onclick="rerollStat(${index})">Re-roll</button>
+    `;
+
+    // Update total score
+    let totalScore = 0;
+    optionSlots.forEach(slot => {
+        const text = slot.querySelector('strong').textContent;
+        const ptsMatch = text.match(/\((\d+(\.\d+)?) pts\)/);
+        if (ptsMatch) totalScore += parseFloat(ptsMatch[1]);
+    });
+
+    // Update or append total score display
+    let scoreDisplay = resultDiv.querySelector('.count-display');
+    if (!scoreDisplay) {
+        scoreDisplay = document.createElement('div');
+        scoreDisplay.className = "count-display";
+        resultDiv.appendChild(scoreDisplay);
+    }
+    scoreDisplay.textContent = `Total Score: ${totalScore} pts`;
+
+    // Update tier text
+    let tierText = "";
+    if (totalScore <= 18) tierText = "0 ~ 18 points : Re-roll";
+    else if (totalScore <= 21) tierText = "19 ~ 21 points : Temporary";
+    else if (totalScore <= 24) tierText = "22 ~ 24 points : Useful";
+    else if (totalScore <= 29) tierText = "25 ~ 29 points : Realistic end (core modular from here on)";
+    else tierText = "30 points or more : GOD";
+
+    let tierDisplay = resultDiv.querySelectorAll('.count-display')[1];
+    if (!tierDisplay) {
+        tierDisplay = document.createElement('div');
+        tierDisplay.className = "count-display";
+        resultDiv.appendChild(tierDisplay);
+    }
+    tierDisplay.textContent = tierText;
+
+    // Track reroll usage
+    rerollCount++;
+    document.getElementById('reroll-counter').textContent = `Re-rolls used: ${rerollCount}`;
+}
+function normalizeStatName(name) {
+    let n = name.toLowerCase().trim();
+    if (n.startsWith("polarize")) return "polarize"; // group all Polarize variants
+    return n;
+}
+
   </script>
 </body>
 </html>
