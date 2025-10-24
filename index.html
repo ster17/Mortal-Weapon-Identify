@@ -9,132 +9,101 @@
 
   <style>
     body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #1e1e1e;
-            color: white;
-        }
-        .item-box {
-        width: 700px; /* expand to fit longest stat name */
-         max-width: 95%; /* keep it responsive */
-         margin: 50px auto;
-         background: #222;
-         padding: 15px;
-         border-radius: 10px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  font-family: Arial, sans-serif;
+  background-color: #1e1e1e;
+  color: #f5f5f5;
+  margin: 0;
+  padding: 20px;
+}
 
-
-        }
-        .item-header {
-            background: black;
-            color: cyan;
-            font-weight: bold;
-            padding: 10px;
-            border-radius: 10px 10px 0 0;
-        }
-        .item-image {
-            width: 60px;
-            height: 60px;
-            margin: 10px auto;
-            display: block;
-            border-radius: 8px;
-            border: 2px solid #ccc;
-        }
-        .option-slot {
-            background: white;
-            color: black;
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-        }
-        .button {
-            background: cyan;
-            color: black;
-            font-weight: bold;
-            padding: 10px;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
-            border-radius: 5px;
-        }
-        .button:hover {
-            background: lightblue;
-        }
-        .count-display {
-            margin-top: 10px;
-            font-weight: bold;
-            color: yellow;
-        }
-        .search-count {
-            margin-top: 10px;
-            font-weight: bold;
-            color: lightblue;
-        }
-        .ed-display {
-            margin-top: 10px;
-            font-weight: bold;
-            color: lightblue;
-            font-size: 1.2em;
-        }
- 
-    .sticky-button {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .red-points {
-      color: red;
-    }
-    :root { --control-h: 24px; } /* single source of truth for control height */
-
-.manual-stat {
+.page-layout {
   display: flex;
-  align-items: center;   /* vertical centering */
-  gap: 8px;
-}
-
-.manual-stat select,
-.manual-stat input {
-  height: var(--control-h);
-  box-sizing: border-box;
-}
-
-.manual-stat select { flex: 1; }   /* dropdown fills remaining space */
-.manual-stat input  { width: 50px; }
-
-.remove-btn {
-  display: inline-flex;           /* centers the X inside the button */
-  align-items: center;
   justify-content: center;
-  width: var(--control-h);
-  height: var(--control-h);
-  padding: 0;                     /* no extra vertical padding */
-  border: none;
-  border-radius: 8px;
-  background: red;
-  color: #fff;
-  font-weight: bold;
-  line-height: 1;                 /* avoid baseline offset */
-  flex-shrink: 0;
+  align-items: flex-start;
+  gap: 30px;
+  max-width: 1800px;
+  margin: 40px auto;
 }
+
+.side-box {
+  width: 320px;
+  background: #1f1f1f;
+  padding: 20px;
+  border-radius: 12px;
+  color: #ddd;
+  font-size: 0.9em;
+  line-height: 1.5;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.side-box h3 {
+  color: #ffd700;
+  margin-top: 0;
+}
+
+.item-box {
+  flex: 1;
+  max-width: 700px;
+  background: #222;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.item-header {
+  background: black;
+  color: cyan;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 10px 10px 0 0;
+}
+
+.item-image {
+  width: 60px;
+  height: 60px;
+  margin: 10px auto;
+  display: block;
+  border-radius: 8px;
+  border: 2px solid #ccc;
+}
+
+.option-slot {
+  background: white;
+  color: black;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 5px;
+}
+
+.button {
+  background: cyan;
+  color: black;
+  font-weight: bold;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  margin-top: 10px;
+  border-radius: 5px;
+}
+
+.button:hover {
+  background: lightblue;
+}
+
+.count-display {
+  margin-top: 10px;
+  font-weight: bold;
+  color: yellow;
+}
+
 .credit {
-  position: fixed;
-  bottom: 10px;
-  right: 10px;
   font-size: 12px;
   color: #aaa;
-  font-family: Arial, sans-serif;
+  margin-top: 20px;
   opacity: 0.8;
-}
-.option-slot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 4px 0;
-}
-
-.option-slot strong {
-    flex: 1;
 }
 
   </style>
@@ -142,62 +111,75 @@
   
 </head>
 <body>
-  <div class="item-box">
-  <div class="item-header">+12 Undead Dragon's Will - Mortal Weapon</div>
-  <img
-    alt="Icon"
-    class="item-image"
-    src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png"
-  />
-  <div
-    style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;"
-  >
-    All *enhancement effect are considered with +12
+  <div class="page-layout">
+    
+    <!-- LEFT BOX -->
+    <div class="side-box">
+      <h3>How to effectively roll for high score (rift server only)</h3>
+      <p>For people who want to aim the highest possible option without spending the most money this is how I recommend you to roll.</p>
+      <p>As you may not know, there are a total of 20 options you can get from rolling the weapon, 5 of which carry 0.8% odds per option and the rest of 16 options carry 6% odds per option. The 5 options that carry 0.8% odds are the ones that scale with enhancement level, making them harder to obtain than the rest.</p>
+      <p>For that reason, you should utilize normal stat change to aim for high tier effects like 1.4%, 1.5% attack power per enhancement level or 1.4%, 1.5% all skill damage per enhancement level. These options carry the highest points within the rare options, giving you a high baseline which increases your total point after finishing the weapon with dragon lens.</p>
+      <p><strong>The overall best options are:</strong><br>
+        1.5% Attack Power per Enhancement Level<br>
+        1.5% All Skill Damage per Enhancement Level<br>
+        12% Polarize: Attack/Attacked Damage<br>
+        1.5 Attack Power Level per Enhancement Level / 1.5% Critical Damage Per Enhancement Level / 12% Continuous Damage Dealt
+      </p>
+    </div>
+
+    <!-- CENTER BOX -->
+    <div class="item-box">
+      <div class="item-header">+12 Undead Dragon's Will - Mortal Weapon</div>
+      <img alt="Icon" class="item-image"
+        src="https://elwiki.net/wiki/images/f/ff/HQ_Shop_Elsword_Legend_Weapon07.png" />
+
+      <div style="font-size: 0.9em; color: lightgray;">All *enhancement effect are considered with +12</div>
+      <div style="font-size: 0.9em; color: lightgray;">Max possible point is 34</div>
+      <div style="font-size: 0.9em; color: lightgray;">If you use Reset Top, increase Continuous Damage points by 0.25</div>
+
+      <div id="manual-input" class="item-box" style="margin-top:20px;">
+        <div class="item-header">Manual Stat Entry</div>
+        <div id="manual-stats"></div>
+        <button class="button" onclick="addManualStat()">+ Add Stat</button>
+        <button class="button" onclick="calculateManualStats()">Calculate Manual Score</button>
+      </div>
+
+      <div id="result">
+        <div class="option-slot">No applicable effects.</div>
+        <div class="option-slot">No applicable effects.</div>
+        <div class="option-slot">No applicable effects.</div>
+        <div class="option-slot">No applicable effects.</div>
+      </div>
+
+      <div id="reroll-counter">Re-rolls used: 0</div>
+      <button class="button sticky-button" onclick="getRandomOptions()">Change Effects</button>
+      <div class="count-display" id="click-count">Number of Effect Changes: 0</div>
+
+      <button class="button" onclick="findTargetOptions()">Best In Slot Options</button>
+      <button class="button" onclick="findMaxTargetOptions()">Find God Tier Options</button>
+
+      <div id="rng-log" style="margin-top: 15px; font-size: 0.85em; color: lightgray;"></div>
+
+      <div class="credit">
+        Credit: ster - trunjthanh (discord), Lynnie - raverie (discord)
+      </div>
+    </div>
+
+    <!-- RIGHT BOX -->
+    <div class="side-box">
+      <h3>Options and their score/odds</h3>
+      <p>1.5% Attack Power per Enhancement Level - 9.5 Points - 0.8%<br><br>
+        1.5% All Skill Damage per Enhancement Level - 8.5 Points - 0.8%<br><br>
+        12% Polarize: Attack/Attacked Damage - 8.5 Points - 6%<br><br>
+        1.5 Attack Power Level per Enhancement Level - 7.5 Points - 0.8%<br><br>
+        1.5% Critical Damage Per Enhancement Level - 7.5 Points - 0.8%<br><br>
+        12% Continuous Damage Dealt - 7.25 Points - 6%<br><br>
+        13% Attack Power - 6.5 Points - 6%<br><br>
+        13% All Skill Damage - 6 Points<br><br>
+        13 Attack Level - 5.5 Points - 6%</p>
+    </div>
+
   </div>
-  <div
-    style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;"
-  >
-    Max possible point is 34
-     </div>
-  <div
-    style="font-size: 0.9em; color: lightgray; margin-top: -5px; margin-bottom: 10px;""
-  >
-    If you use Reset Top, increase Continuous Damage points by 0.25
-    <div id="manual-input" class="item-box" style="margin-top:20px;">
-      <div class="item-header">Manual Stat Entry</div>
-      <div id="manual-stats"></div>
-      <button class="button" onclick="addManualStat()">+ Add Stat</button>
-      <button class="button" onclick="calculateManualStats()">
-        Calculate Manual Score
-      </button>
-    </div>
-    <div id="result">
-      <div class="option-slot">No applicable effects.</div>
-      <div class="option-slot">No applicable effects.</div>
-      <div class="option-slot">No applicable effects.</div>
-      <div class="option-slot">No applicable effects.</div>
-    </div>
-    <div id="reroll-counter">Re-rolls used: 0</div>
-    <div id="best-result"></div>
-    <div id="god-result"></div>
-    <button class="button sticky-button" onclick="getRandomOptions()">
-      Change Effects
-    </button>
-    <div class="count-display" id="click-count">
-      Number of Effect Changes: 0
-    </div>
-    <button class="button" onclick="findTargetOptions()">
-      Best In Slot Options
-    </button>
-    <button class="button" onclick="findMaxTargetOptions()">
-      Find God Tier Options
-    </button>
-    <div id="rng-log" style="margin-top: 15px; font-size: 0.85em; color: lightgray;"></div>
-    <div class="search-count" id="search-count"></div>
-    <div class="ed-display" id="ed-cost"></div>
-    <div class="credit">
-  Credit: ster - trunjthanh (discord), Lynnie - raverie (discord)
-</div>
 
   <script>
     function getPointColor(score) {
@@ -818,7 +800,6 @@ function normalizeStatName(name) {
     if (n.startsWith("polarize")) return "polarize"; // group all Polarize variants
     return n;
 }
-
   </script>
 </body>
 </html>
